@@ -234,7 +234,7 @@ class Mapping:
 
     @classmethod
     def of_raw_data(cls, for_event, databases):
-        def codes(for_database):
+        def codes(database, for_database):
             inclusion, exclusion = None, None
             if 'inclusion' in for_database:
                 inclusion = set(for_database['inclusion'])
@@ -243,7 +243,11 @@ class Mapping:
             if inclusion is None:
                 return None
             else:
-                return inclusion | (exclusion or set())
+                if database == 'IPCI':
+                    # IPCI exclusion codes are not based on the case definition!
+                    return inclusion
+                else:
+                    return inclusion | (exclusion or set())
         def exclusion_codes(for_database):
             if 'inclusion' in for_database:
                 if 'exclusion' in for_database:
@@ -253,7 +257,7 @@ class Mapping:
             else:
                 return None
         return Mapping({
-            database: codes(for_event['by-database'][database])
+            database: codes(database, for_event['by-database'][database])
             for database in databases.databases()
         }, {
             database: exclusion_codes(for_event['by-database'][database])
